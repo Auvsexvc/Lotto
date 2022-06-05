@@ -6,234 +6,232 @@ namespace Lotto
 {
     internal static class Program
     {
-        private static int kumulacja;
-        private static int START = 30;
+        private static int cumulation;
+        private const int START = 30;
         private static Random rnd = new Random();
 
         private static void Main(string[] args)
         {
-            int pieniadze = START;
-            int dzien = 0;
             do
             {
-                pieniadze = START;
-                dzien = 0;
-                ConsoleKey wybor;
+                int money = START;
+                int day = 0;
+                ConsoleKey input;
                 do
                 {
-                    kumulacja = rnd.Next(2, 37) * 1000000;
-                    dzien++;
-                    int losow = 0;
-                    List<int[]> kupon = new List<int[]>();
+                    cumulation = rnd.Next(2, 37) * 1000000;
+                    day++;
+                    int tickets = 0;
+                    List<int[]> coupon = new List<int[]>();
 
                     do
                     {
                         Console.Clear();
-                        Console.WriteLine($"Dzień : {dzien}");
-                        Console.WriteLine($"Witaj w grze lotto, dziś do wygrana jest {kumulacja} zł");
-                        Console.WriteLine($"Stan konta: {pieniadze} zł");
+                        Console.WriteLine($"Day : {day}");
+                        Console.WriteLine($"Welcome in lotto, today's win is {cumulation} BC");
+                        Console.WriteLine($"Wallet: {money} BC");
                         Console.WriteLine();
-                        WyswietlKupon(kupon);
+                        ShowCoupon(coupon);
                         // MENU
-                        if (pieniadze >= 3 && losow < 8)
+                        if (money >= 3 && tickets < 8)
                         {
-                            Console.WriteLine($"1 - Postaw nowy los (-3zł) [{losow + 1}/8]");
+                            Console.WriteLine($"1 - Buy new ticket (-3BC) [{tickets + 1}/8]");
                         }
-                        Console.WriteLine("2 - Sprawdź kupon - losowanie");
-                        Console.WriteLine("3 - Zakończ grę");
+                        Console.WriteLine("2 - Check coupon - start lottery");
+                        Console.WriteLine("3 - End the game");
                         // MENU
-                        wybor = Console.ReadKey().Key;
-                        if (wybor == ConsoleKey.D1 && pieniadze >= 3 && losow < 8)
+                        input = Console.ReadKey().Key;
+                        if (input == ConsoleKey.D1 && money >= 3 && tickets < 8)
                         {
-                            kupon.Add(PostawLos());
-                            pieniadze -= 3;
-                            losow++;
+                            coupon.Add(Bet());
+                            money -= 3;
+                            tickets++;
                         }
-                    } while (wybor == ConsoleKey.D1);
+                    } while (input == ConsoleKey.D1);
                     Console.Clear();
-                    if (kupon.Count > 0)
+                    if (coupon.Count > 0)
                     {
-                        int wygrana = Sprawdz(kupon);
-                        if (wygrana > 0)
+                        int win = Drawing(coupon);
+                        if (win > 0)
                         {
                             Console.ForegroundColor = ConsoleColor.Green;
-                            Console.WriteLine($"\nBrawo! wygrałeś {wygrana} złw tym losowaniu!");
+                            Console.WriteLine($"\nCongratulation! You've won {win} BC in this lottery!");
                             Console.ResetColor();
-                            pieniadze += wygrana;
+                            money += win;
                         }
                         else
                         {
                             Console.ForegroundColor = ConsoleColor.DarkGray;
-                            Console.WriteLine($"\nNiestety nic nie wygrałeś");
+                            Console.WriteLine($"\nSorry, you haven't won anything");
                             Console.ResetColor();
                         }
                     }
                     else
                     {
-                        Console.WriteLine("Nie miałeś losów w tym losowaniu");
+                        Console.WriteLine("U haven't bet anything this time");
                     }
-                    Console.WriteLine("Kontynuuj...");
+                    Console.WriteLine("Continue...");
                     Console.ReadKey();
-                } while (pieniadze >= 3 && wybor != ConsoleKey.D3);
+                } while (money >= 3 && input != ConsoleKey.D3);
 
                 Console.Clear();
-                Console.WriteLine($"Dzień {dzien}. \nKoniec gry, twój wynik to: {pieniadze - START} zł");
-                Console.WriteLine("Enter - graj od nowa");
+                Console.WriteLine($"Day {day}. \nEnd of game, Your score is: {money - START} BC");
+                Console.WriteLine("Enter - play again");
             } while (Console.ReadKey().Key == ConsoleKey.Enter);
         }
 
-        private static int Sprawdz(List<int[]> kupon)
+        private static int Drawing(List<int[]> coupon)
         {
-            int wygrana = 0;
-            int[] wylosowane = new int[6];
-            for (int i = 0; i < wylosowane.Length; i++)
+            int win = 0;
+            int[] draft = new int[6];
+            for (int i = 0; i < draft.Length; i++)
             {
-                int los = rnd.Next(1, 50);
-                if (!wylosowane.Contains(los))
+                int ticket = rnd.Next(1, 50);
+                if (!draft.Contains(ticket))
                 {
-                    wylosowane[i] = los;
+                    draft[i] = ticket;
                 }
                 else
                 {
                     i--;
                 }
             }
-            Array.Sort(wylosowane);
-            Console.WriteLine($"Wylosowane liczby to:");
-            foreach (int liczba in wylosowane)
+            Array.Sort(draft);
+            Console.WriteLine($"Drawn numbers are:");
+            foreach (int number in draft)
             {
-                Console.Write(liczba + ", ");
+                Console.Write(number + ", ");
             }
-            int[] trafione = SprawdzKupon(kupon, wylosowane);
-            int wartosc = 0;
+            int[] hit = CheckCoupon(coupon, draft);
+            int value = 0;
 
             Console.WriteLine();
-            if (trafione[0] > 0)
+            if (hit[0] > 0)
             {
-                wartosc = trafione[0] * 24;
-                Console.WriteLine($"3 trafienia: {trafione[0]} +{wartosc}");
-                wygrana += wartosc;
+                value = hit[0] * 24;
+                Console.WriteLine($"3 hits: {hit[0]} +{value}");
+                win += value;
             }
-            if (trafione[1] > 0)
+            if (hit[1] > 0)
             {
-                wartosc = trafione[1] * rnd.Next(100, 301);
-                Console.WriteLine($"4 trafienia: {trafione[1]} +{wartosc}");
-                wygrana += wartosc;
+                value = hit[1] * rnd.Next(100, 301);
+                Console.WriteLine($"4 hits: {hit[1]} +{value}");
+                win += value;
             }
-            if (trafione[2] > 0)
+            if (hit[2] > 0)
             {
-                wartosc = trafione[2] * rnd.Next(4000, 8001); ;
-                Console.WriteLine($"5 trafień: {trafione[2]} +{wartosc}");
-                wygrana += wartosc;
+                value = hit[2] * rnd.Next(4000, 8001); ;
+                Console.WriteLine($"5 hits: {hit[2]} +{value}");
+                win += value;
             }
-            if (trafione[3] > 0)
+            if (hit[3] > 0)
             {
-                wartosc = trafione[3] * kumulacja / (trafione[3] + rnd.Next(0, 5));
-                Console.WriteLine($"6 trafień: {trafione[4]} +{wartosc}");
-                wygrana += wartosc;
+                value = hit[3] * cumulation / (hit[3] + rnd.Next(0, 5));
+                Console.WriteLine($"6 hits: {hit[4]} +{value}");
+                win += value;
             }
 
-            return wygrana;
+            return win;
         }
 
-        private static int[] SprawdzKupon(List<int[]> kupon, int[] wylosowane)
+        private static int[] CheckCoupon(List<int[]> coupon, int[] draft)
         {
-            int[] wygrane = new int[4];
+            int[] wins = new int[4];
             int i = 0;
-            Console.WriteLine($"\n\nTwój kupon:");
-            foreach (int[] los in kupon)
+            Console.WriteLine($"\n\nYour coupon:");
+            foreach (int[] ticket in coupon)
             {
                 i++;
                 Console.Write($"{i}: ");
-                int trafien = 0;
-                foreach (int liczba in los)
+                int hits = 0;
+                foreach (int number in ticket)
                 {
-                    if (wylosowane.Contains(liczba))
+                    if (draft.Contains(number))
                     {
                         Console.ForegroundColor = ConsoleColor.Green;
-                        Console.Write(liczba + ", ");
+                        Console.Write(number + ", ");
                         Console.ResetColor();
-                        trafien++;
+                        hits++;
                     }
                     else
                     {
-                        Console.Write(liczba + ", ");
+                        Console.Write(number + ", ");
                     }
                 }
-                switch (trafien)
+                switch (hits)
                 {
                     case 3:
-                        wygrane[0]++;
+                        wins[0]++;
                         break;
 
                     case 4:
-                        wygrane[1]++;
+                        wins[1]++;
                         break;
 
                     case 5:
-                        wygrane[2]++;
+                        wins[2]++;
                         break;
 
                     case 6:
-                        wygrane[3]++;
+                        wins[3]++;
                         break;
                 }
-                Console.WriteLine($" - trafiono {trafien}/6");
+                Console.WriteLine($" - hits {hits}/6");
             }
 
-            return wygrane;
+            return wins;
         }
 
-        private static int[] PostawLos()
+        private static int[] Bet()
         {
-            int[] liczby = new int[6];
-            int liczba = -1;
-            for (int i = 0; i < liczby.Length; i++)
+            int[] numbers = new int[6];
+            int number = -1;
+            for (int i = 0; i < numbers.Length; i++)
             {
                 Console.Clear();
-                Console.Write("Postawione liczby: ");
-                foreach (int l in liczby)
+                Console.Write("Bet numbers: ");
+                foreach (int l in numbers)
                 {
                     if (l > 0)
                     {
                         Console.Write(l + ", ");
                     }
                 }
-                Console.WriteLine("\n\nWybierz liczbę od 1 do 49:");
+                Console.WriteLine("\n\nPick a number from 1 to 49:");
                 Console.Write($"{i + 1}/6: ");
-                bool prawidlowa = int.TryParse(Console.ReadLine(), out liczba);
-                if (prawidlowa && liczba >= 1 && liczba <= 49 && !liczby.Contains(liczba))
+                bool proper = int.TryParse(Console.ReadLine(), out number);
+                if (proper && number >= 1 && number <= 49 && !numbers.Contains(number))
                 {
-                    liczby[i] = liczba;
+                    numbers[i] = number;
                 }
                 else
                 {
-                    Console.WriteLine("Błędna liczba.");
+                    Console.WriteLine("Incorrect number.");
                     i--;
                     Console.ReadKey();
                 }
             }
-            Array.Sort(liczby);
-            return liczby;
+            Array.Sort(numbers);
+            return numbers;
         }
 
-        private static void WyswietlKupon(List<int[]> kupon)
+        private static void ShowCoupon(List<int[]> coupon)
         {
-            if (kupon.Count == 0)
+            if (coupon.Count == 0)
             {
-                Console.WriteLine("Nie postawiłeś jeszcze żadnych losów.");
+                Console.WriteLine("You haven't bet any tickets yet.");
             }
             else
             {
                 int i = 0;
-                Console.WriteLine("\nTwój kupon:");
-                foreach (int[] los in kupon)
+                Console.WriteLine("\nYour coupon:");
+                foreach (int[] ticket in coupon)
                 {
                     i++;
                     Console.Write($"{i} : ");
-                    foreach (int liczba in los)
+                    foreach (int number in ticket)
                     {
-                        Console.Write(liczba + ", ");
+                        Console.Write(number + ", ");
                     }
                     Console.WriteLine();
                 }
